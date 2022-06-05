@@ -32,8 +32,12 @@ class PreprocessImage():
                 self.digits[i]['x_max'] = self.digits[i]['x_start']
                 self.digits[i]['y_min'] = self.digits[i]['y_start']
                 self.digits[i]['y_max'] = self.digits[i]['y_start']
-                sys.setrecursionlimit(3000)
-                self.plot_area(self.digits[i]["y_start"], self.digits[i]["x_start"])
+
+                # im = Image.fromarray(self.img_a)
+                # im.save('C:\\Users\\QQ\\Desktop\\OD\\pb_captcha_images\\test_1.bmp')
+
+                sys.setrecursionlimit(100000)
+                self.plot_area(self.digits[i]["y_start"], self.digits[i]["x_start"], depth=0)
                 sys.setrecursionlimit(1000)
 
                 # Если случайно захватили 2 цифры - вторую половину красим в черный, пересчитываем pixelCount и сужаем фрейм
@@ -54,17 +58,13 @@ class PreprocessImage():
                     self.digits[i]['x_max'] = x_limit
 
                 # im = Image.fromarray(self.img_a)
-                # im.save('C:\\Users\\DQ\\Desktop\\OD\\pb_captcha_images\\test_1.bmp')
+                # im.save('C:\\Users\\QQ\\Desktop\\OD\\pb_captcha_images\\test_1.bmp')
                 if self.digits[i]['pixelCount'] > 250:
                     self.copy_digit()
                 else: # Ложное срабатывание
                     i -= 1
                 # Затираем закрашенную область
-                # im = Image.fromarray(self.img_a)
-                # im.save('C:\\Users\\DQ\\Desktop\\OD\\pb_captcha_images\\test_1.bmp')
                 self.clean_plotted()
-                # im = Image.fromarray(self.img_a)
-                # im.save('C:\\Users\\DQ\\Desktop\\OD\\pb_captcha_images\\test_2.bmp')
             else: # Если стартовая точка не найдена - выходим из цикла
                 break
             i += 1
@@ -101,7 +101,9 @@ class PreprocessImage():
             else:
                 break
 
-    def plot_area(self, y, x):
+    def plot_area(self, y, x, depth):
+        if depth > 1000: return 0
+
         #Если пиксель черный - работаем дальше, иначе ничего не делаем
         if self.img_a[y][x][0] == 0:
             self.img_a[y][x][0] = 100 # Красим пиксель
@@ -115,28 +117,28 @@ class PreprocessImage():
             # Проверяем соседние пиксели по часовой стрелке
             # 1
             if x > 0 and y > 0:
-                if self.img_a[y-1][x-1][0] != 100: self.plot_area(y-1, x-1)
+                if self.img_a[y-1][x-1][0] != 100: self.plot_area(y-1, x-1, depth=depth+1)
             # 2
             if y > 0:
-                if self.img_a[y-1][x][0] != 100: self.plot_area(y-1, x)
+                if self.img_a[y-1][x][0] != 100: self.plot_area(y-1, x, depth=depth+1)
             # 3
             if x < 199 and y > 0:
-                if self.img_a[y-1][x+1][0] != 100: self.plot_area(y-1, x+1)
+                if self.img_a[y-1][x+1][0] != 100: self.plot_area(y-1, x+1, depth=depth+1)
             # 4
             if x < 199:
-                if self.img_a[y][x+1][0] != 100: self.plot_area(y, x+1)
+                if self.img_a[y][x+1][0] != 100: self.plot_area(y, x+1, depth=depth+1)
             # 5
             if x < 199 and y < 99:
-                if self.img_a[y+1][x+1][0] != 100: self.plot_area(y+1, x+1)
+                if self.img_a[y+1][x+1][0] != 100: self.plot_area(y+1, x+1, depth=depth+1)
             # 6
             if y < 99:
-                if self.img_a[y + 1][x][0] != 100: self.plot_area(y + 1, x)
+                if self.img_a[y + 1][x][0] != 100: self.plot_area(y + 1, x, depth=depth+1)
             # 7
             if x > 0 and y < 99:
-                if self.img_a[y + 1][x - 1][0] != 100: self.plot_area(y + 1, x - 1)
+                if self.img_a[y + 1][x - 1][0] != 100: self.plot_area(y + 1, x - 1, depth=depth+1)
             # 8
             if x > 0:
-                if self.img_a[y][x - 1][0] != 100: self.plot_area(y, x - 1)
+                if self.img_a[y][x - 1][0] != 100: self.plot_area(y, x - 1, depth=depth+1)
 
     def clean_plotted(self):
         for iy, y in enumerate(self.img_a):
